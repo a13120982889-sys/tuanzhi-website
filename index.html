@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>湍帜营销 TUANZHI | 品牌营销商业合作伙伴</title>
+    <meta name="description" content="以内容为核心驱动的整合传播广告公司">
+    
+    <!-- 引入高级字体库: Noto Serif SC(思源宋体)用于中文呈现顶级奢侈品质感 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==========================================================================
+           1. CSS VARIABLES & RESET
+           ========================================================================== */
+        :root {
+            --c-bg: #F4F4F0;         /* 顶级奢侈品常用的米灰白背景 */
+            --c-text: #121212;       /* 柔和的深邃黑 */
+            --c-text-muted: #7A7A7A; /* 辅文灰度 */
+            --c-black: #000000;
+            --c-white: #FFFFFF;
+            
+            --f-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --f-serif: 'Playfair Display', 'Noto Serif SC', serif;
+            
+            --spacing-unit: 1vw;
+            --container-padding: 6vw;
+            
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+            --ease-in-out-circ: cubic-bezier(0.85, 0, 0.15, 1);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--c-bg);
+            color: var(--c-text);
+            font-family: var(--f-sans);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overscroll-behavior: none;
+        }
+
+        @media (pointer: fine) {
+            body { cursor: none; }
+            a, button, [data-magnetic] { cursor: none; }
+        }
+
+        ::selection { background: var(--c-text); color: var(--c-bg); }
+
+        /* ==========================================================================
+           2. LOADER / 预加载器
+           ========================================================================== */
+        .loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100vh;
+            background-color: var(--c-text);
+            color: var(--c-bg);
+            z-index: 99999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .loader-counter {
+            font-family: var(--f-serif);
+            font-size: clamp(4rem, 10vw, 8rem);
+            font-weight: 300;
+            overflow: hidden;
+        }
+        .loader-counter span {
+            display: inline-block;
+            transform: translateY(100%);
+        }
+        .loader-text {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-top: 20px;
+            opacity: 0;
+        }
+
+        /* ==========================================================================
+           3. CUSTOM CURSOR
+           ========================================================================== */
+        .cursor-dot, .cursor-follower {
+            position: fixed;
+            top: 0; left: 0;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate3d(0, 0, 0);
+        }
+        .cursor-dot {
+            width: 10px; height: 10px;
+            background-color: var(--c-text);
+            margin: -5px;
+            mix-blend-mode: difference;
+            transition: opacity 0.3s, transform 0.3s var(--ease-out-expo);
+        }
+        .cursor-follower {
+            width: 40px; height: 40px;
+            border: 1px solid rgba(18,18,18,0.5);
+            margin: -20px;
+            transition: width 0.4s var(--ease-out-expo), height 0.4s var(--ease-out-expo), border-color 0.4s;
+        }
+        .cursor-follower.is-hover {
+            width: 80px; height: 80px;
+            background-color: rgba(18,18,18,0.05);
+            border-color: transparent;
+            backdrop-filter: blur(2px);
+        }
+        .cursor-follower.is-magnetic {
+            border-color: var(--c-text);
+            width: 60px; height: 60px;
+        }
+        .cursor-text {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--c-bg);
+            opacity: 0; transition: opacity 0.3s;
+            font-family: var(--f-sans);
+        }
+        .cursor-follower.is-viewing {
+            width: 100px; height: 100px;
+            background-color: var(--c-text);
+            border-color: var(--c-text);
+            mix-blend-mode: normal;
+            margin: -50px; /* 调整圆心 */
+        }
+        .cursor-follower.is-viewing .cursor-text { opacity: 1; }
+
+        /* ==========================================================================
+           4. LAYOUT & SCROLL CONTAINER
+           ========================================================================== */
+        #scroll-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            will-change: transform;
+            overflow: hidden;
+        }
+
+        .nav-bar {
+            position: fixed; top: 0; left: 0; width: 100%;
+            padding: 3vw var(--container-padding);
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000;
+            mix-blend-mode: difference;
+            color: var(--c-white);
+            pointer-events: none;
+        }
+        .nav-logo {
+            font-family: var(--f-serif);
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            pointer-events: auto;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* 动画遮罩 */
+        .text-reveal-mask { overflow: hidden; display: inline-block; vertical-align: top; }
+        .text-reveal-inner { 
+            display: inline-block; 
+            transform: translateY(110%); 
+            transform-origin: bottom left;
+        }
+        .section-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 3rem;
+            position: relative;
+            display: inline-block;
+        }
+        .section-label::before {
+            content: ''; position: absolute;
+            top: 50%; left: -40px; width: 30px; height: 1px;
+            background-color: currentColor;
+        }
+
+        /* ==========================================================================
+           5. SECTIONS
+           ========================================================================== */
+        /* --- HERO --- */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 var(--container-padding);
+            position: relative;
+        }
+        .hero-title {
+            font-family: var(--f-serif);
+            font-size: clamp(3rem, 10vw, 12rem);
+            font-weight: 400;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            text-align: center;
+            margin-bottom: 2vh;
+        }
+        .hero-subtitle {
+            font-size: clamp(1rem, 1.5vw, 2rem);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--c-text-muted);
+            margin-top: 2vh;
+        }
+        .hero-scroll-indicator {
+            position: absolute; bottom: 40px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem; letter-spacing: 2px;
+            text-transform: uppercase; display: flex;
+            flex-direction: column; align-items: center; gap: 10px;
+            opacity: 0;
+        }
+        .hero-scroll-line {
+            width: 1px; height: 40px; background-color: var(--c-text);
+            overflow: hidden; position: relative;
+        }
+        .hero-scroll-line::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--c-bg);
+            animation: scrollLine 2s var(--ease-in-out-circ) infinite;
+        }
+        @keyframes scrollLine {
+            0% { transform: translateY(-100%); }
+            50% { transform: translateY(0); }
+            100% { transform: translateY(100%); }
+        }
+
+        /* --- VISION --- */
+        .vision {
+            padding: 20vh var(--container-padding);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .vision-quote {
+            font-family: var(--f-serif);
+            font-size: clamp(1.8rem, 4vw, 4.5rem);
+            line-height: 1.4;
+            max-width: 85%;
+            margin-bottom: 5vh;
+        }
+        .vision-desc {
+            font-size: clamp(1rem, 1.2vw, 1.5rem);
+            color: var(--c-text-muted);
+            max-width: 600px;
+            line-height: 1.8;
+        }
+
+        /* --- SERVICES / 严格左右排版 --- */
+        .services {
+            padding: 10vh var(--container-padding);
+        }
+        .service-list {
+            border-top: 1px solid rgba(18,18,18,0.2);
+            position: relative;
+            transition: opacity 0.5s var(--ease-out-expo);
+        }
+        .service-list:hover .service-item {
+            opacity: 0.25;
+            filter: blur(2px);
+        }
+        .service-item {
+            display: flex;
+            justify-content: flex-start; /* 重点：向左挤压保证中间无缝隙 */
+            align-items: baseline; /* 基线对齐 */
+            padding: 5vw 0;
+            border-bottom: 1px solid rgba(18,18,18,0.2);
+            text-decoration: none;
+            color: inherit;
+            transition: opacity 0.5s var(--ease-out-expo), filter 0.5s var(--ease-out-expo);
+        }
+        .service-list .service-item:hover {
+            opacity: 1;
+            filter: blur(0);
+        }
+        /* 左侧宽度 50% */
+        .service-name-wrap {
+            width: 50%; 
+            transition: transform 0.6s var(--ease-out-expo);
+        }
+        .service-name {
+            font-family: var(--f-serif);
+            font-size: clamp(2rem, 5vw, 5.5rem);
+            font-weight: 400;
+            line-height: 1.2;
+            pointer-events: none;
+        }
+        /* 右侧宽度 50%，强制居左对齐，实现与左边无空隙衔接 */
+        .service-meta-wrap {
+            width: 50%;
+            text-align: left;
+            transition: transform 0.6s var(--ease-out-expo);
+        }
+        .service-meta {
+            font-size: clamp(0.9rem, 1.2vw, 1.5rem);
+            color: var(--c-text-muted);
+            pointer-events: none;
+            line-height: 1.6;
+            transition: color 0.6s var(--ease-out-expo);
+        }
+        
+        /* 悬停时的优美微动错位 */
+        .service-item:hover .service-name-wrap {
+            transform: translateX(2vw);
+        }
+        .service-item:hover .service-meta-wrap {
+            transform: translateX(2vw);
+        }
+        .service-item:hover .service-meta {
+            color: var(--c-text); /* 悬停时字变黑 */
+        }
+
+        /* --- BRANDS MARQUEE / 品牌跑马灯 --- */
+        .brands {
+            padding: 15vh 0;
+            background-color: var(--c-black);
+            color: var(--c-white);
+            overflow: hidden;
+        }
+        .brands .section-label {
+            margin-left: var(--container-padding);
+        }
+        .brands .section-label::before {
+            background-color: var(--c-white);
+        }
+        
+        .marquee-wrapper {
+            position: relative;
+            width: 100vw;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding: 4vh 0;
+            margin-top: 4vh;
+            display: flex;
+            white-space: nowrap;
+        }
+        .marquee-track {
+            display: inline-flex;
+            align-items: center;
+            /* JS 将控制该轨道的动画 */
+            will-change: transform;
+        }
+        .brand-item {
+            font-family: var(--f-serif);
+            font-size: clamp(3rem, 6vw, 8rem);
+            text-transform: uppercase;
+            font-weight: 300;
+            letter-spacing: 2px;
+            padding: 0 3vw;
+        }
+        .brand-dot {
+            font-size: 1.5rem;
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* --- FOOTER --- */
+        .footer {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--c-bg);
+            position: relative;
+            overflow: hidden;
+        }
+        .footer-title {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--c-text-muted);
+            margin-bottom: 5vh;
+        }
+        .footer-email {
+            font-family: var(--f-serif);
+            font-size: clamp(2.5rem, 6vw, 9rem);
+            color: var(--c-text);
+            text-decoration: none;
+            position: relative;
+            display: inline-block;
+            padding: 20px;
+        }
+        .footer-email::after {
+            content: '';
+            position: absolute; bottom: 10px; left: 0;
+            width: 100%; height: 2px; background-color: var(--c-text);
+            transform: scaleX(0); transform-origin: right;
+            transition: transform 0.6s var(--ease-out-expo);
+        }
+        .footer-email:hover::after {
+            transform: scaleX(1); transform-origin: left;
+        }
+        .footer-bottom {
+            position: absolute; bottom: 3vw;
+            width: 100%; padding: 0 var(--container-padding);
+            display: flex; justify-content: space-between;
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--c-text-muted);
+        }
+
+        /* ==========================================================================
+           6. RESPONSIVE
+           ========================================================================== */
+        @media (max-width: 768px) {
+            /* 手机端由于屏幕过窄，强制改为上下堆叠排版 */
+            .service-item { 
+                flex-direction: column; 
+                padding: 8vw 0; 
+                gap: 2vw;
+            }
+            .service-name-wrap, .service-meta-wrap {
+                width: 100%;
+            }
+            .service-item:hover .service-name-wrap, 
+            .service-item:hover .service-meta-wrap { 
+                transform: translateX(4vw); 
+            }
+            .footer-email::after { bottom: 0px; }
+            .footer-bottom { flex-direction: column; align-items: center; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================== 预加载器 ================== -->
+    <div class="loader" id="loader">
+        <div class="loader-counter"><span id="loader-perc">0</span>%</div>
+        <div class="loader-text" id="loader-text">Loading Experience</div>
+    </div>
+
+    <!-- ================== 自定义交互光标 ================== -->
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-follower" id="cursor-follower">
+        <span class="cursor-text" id="cursor-text">DRAG</span>
+    </div>
+
+    <!-- ================== 顶部导航 ================== -->
+    <nav class="nav-bar">
+        <a href="#" class="nav-logo" data-magnetic>TUANZHI.</a>
+    </nav>
+
+    <!-- ================== 虚拟平滑滚动层 ================== -->
+    <main id="scroll-container">
+        
+        <section class="hero">
+            <h1 class="hero-title text-reveal">湍帜营销</h1>
+            <p class="hero-subtitle text-reveal">品牌营销商业合作伙伴</p>
+            <div class="hero-scroll-indicator" id="scroll-indicator">
+                Scroll
+                <div class="hero-scroll-line"></div>
+            </div>
+        </section>
+
+        <section class="vision">
+            <div class="section-label text-reveal">Brand Vision</div>
+            <h2 class="vision-quote text-reveal">
+                “「湍」无序的流动<br>
+                「帜」最早的广告形式<br>
+                总要在激荡的岁月长河留下一些鲜明的旗帜”
+            </h2>
+            <p class="vision-desc text-reveal">
+                我们是一家以内容为核心的综合性服务团队，已有8年的沉淀历史。<br>
+                致力成为品牌的商业合作伙伴，解决传播难题，扩大社会化影响力。
+            </p>
+        </section>
+
+        <!-- 业务范畴：修复了Bug的完美左右50:50对齐 -->
+        <section class="services">
+            <div class="section-label text-reveal">Core Business / 业务范畴</div>
+            <div class="service-list">
+                
+                <a href="#" class="service-item">
+                    <div class="service-name-wrap"><h3 class="service-name text-reveal">小红书</h3></div>
+                    <div class="service-meta-wrap"><p class="service-meta text-reveal">小红书整合营销 / 精准KOC,KOL矩阵<br>智能种草小红书全域增长</p></div>
+                </a>
+ 
+               <a href="#" class="service-item">
+                    <div class="service-name-wrap"><h3 class="service-name text-reveal">抖音</h3></div>
+                    <div class="service-meta-wrap"><p class="service-meta text-reveal">抖音投流与本地推 / IP孵化<br>缩短购买链路的高效商业转化</p></div>
+                </a>                
+
+                <a href="#" class="service-item">
+                    <div class="service-name-wrap"><h3 class="service-name text-reveal">知乎 & 百度</h3></div>
+                    <div class="service-meta-wrap"><p class="service-meta text-reveal">知乎话题引爆 / 百度百科全方位优化<br>用权威内容建立品牌护城河</p></div>
+                </a>
+                
+                <a href="#" class="service-item">
+                    <div class="service-name-wrap"><h3 class="service-name text-reveal">内容与创意</h3></div>
+                    <div class="service-meta-wrap"><p class="service-meta text-reveal">200+顶尖创作者覆盖全行业<br>手绘与高级视觉包装设计</p></div>
+                </a>
+                
+            </div>
+        </section>
+
+        <!-- 合作品牌无缝滚动区 (10个PDF中提取的高端品牌) -->
+        <section class="brands">
+            <div class="section-label text-reveal">Cooperative Brands / 合作品牌</div>
+            <div class="marquee-wrapper data-cursor-view">
+                <div class="marquee-track" id="marquee-track">
+                    <!-- 第一组 -->
+                    <span class="brand-item">LA PRAIRIE</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">DYSON</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">SAMSONITE</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">L'ORÉAL</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">FRESH</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">LOUIS VUITTON</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">JAGUAR</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">LAND ROVER</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">SIEMENS</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">NESTLÉ</span> <span class="brand-dot">✦</span>
+                    <!-- 复制第二组以实现无缝对接 -->
+                    <span class="brand-item">LA PRAIRIE</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">DYSON</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">SAMSONITE</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">L'ORÉAL</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">FRESH</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">LOUIS VUITTON</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">JAGUAR</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">LAND ROVER</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">SIEMENS</span> <span class="brand-dot">✦</span>
+                    <span class="brand-item">NESTLÉ</span> <span class="brand-dot">✦</span>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer-title text-reveal">Ready for the next step?</p>
+            <a href="mailto:anna@shtuanzhi.com" class="footer-email text-reveal" data-magnetic>anna@shtuanzhi.com</a>
+            
+            <div class="footer-bottom text-reveal">
+                <span>© 2026 Tuanzhi Marketing</span>
+                <span>Shanghai, China</span>
+                <span>Designed & Coded For Excellence</span>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- ==========================================================================
+         JAVASCRIPT ENGINES (架构级代码)
+         ========================================================================== -->
+    <script>
+        const MathUtils = {
+            lerp: (a, b, n) => (1 - n) * a + n * b,
+            clamp: (num, min, max) => Math.min(Math.max(num, min), max)
+        };
+        const isTouchDevice = () => !window.matchMedia('(pointer: fine)').matches;
+
+        // 1. 预加载
+        class Preloader {
+            constructor() {
+                this.el = document.getElementById('loader');
+                this.percEl = document.getElementById('loader-perc');
+                this.textEl = document.getElementById('loader-text');
+                this.progress = 0;
+                this.init();
+            }
+            init() {
+                const update = () => {
+                    this.progress += Math.random() * 5;
+                    if (this.progress > 100) this.progress = 100;
+                    this.percEl.innerText = Math.floor(this.progress);
+                    
+                    if (this.progress < 100) {
+                        requestAnimationFrame(update);
+                    } else {
+                        setTimeout(() => this.hide(), 500); 
+                    }
+                };
+                this.percEl.style.transition = 'transform 1s cubic-bezier(0.19, 1, 0.22, 1)';
+                this.percEl.style.transform = 'translateY(0)';
+                setTimeout(() => { this.textEl.style.opacity = 1; }, 400);
+                requestAnimationFrame(update);
+            }
+            hide() {
+                this.el.style.transition = 'transform 1.2s cubic-bezier(0.85, 0, 0.15, 1)';
+                this.el.style.transform = 'translateY(-100%)';
+                setTimeout(() => {
+                    document.dispatchEvent(new Event('preloaderDone'));
+                    document.getElementById('scroll-indicator').style.opacity = 1;
+                    document.getElementById('scroll-indicator').style.transition = 'opacity 1s ease 1s';
+                }, 600);
+            }
+        }
+
+        // 2. 高级光标
+        class Cursor {
+            constructor() {
+                this.dot = document.getElementById('cursor-dot');
+                this.follower = document.getElementById('cursor-follower');
+                this.text = document.getElementById('cursor-text');
+                this.pos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+                this.mouse = { x: this.pos.x, y: this.pos.y };
+                this.visible = false;
+                
+                window.addEventListener('mousemove', e => this.onMouseMove(e));
+                window.addEventListener('mouseleave', () => this.hide());
+                window.addEventListener('mouseenter', () => this.show());
+                
+                this.initHovers();
+                requestAnimationFrame(() => this.render());
+            }
+            onMouseMove(e) {
+                if(!this.visible) this.show();
+                this.mouse.x = e.clientX;
+                this.mouse.y = e.clientY;
+                this.dot.style.transform = `translate3d(${this.mouse.x}px, ${this.mouse.y}px, 0)`;
+            }
+            show() {
+                this.visible = true;
+                this.dot.classList.remove('is-hidden');
+                this.follower.classList.remove('is-hidden');
+            }
+            hide() {
+                this.visible = false;
+                this.dot.classList.add('is-hidden');
+                this.follower.classList.add('is-hidden');
+            }
+            initHovers() {
+                document.querySelectorAll('a:not([data-magnetic]), button, .service-item').forEach(el => {
+                    el.addEventListener('mouseenter', () => this.follower.classList.add('is-hover'));
+                    el.addEventListener('mouseleave', () => this.follower.classList.remove('is-hover'));
+                });
+                
+                document.querySelectorAll('.data-cursor-view').forEach(el => {
+                    el.addEventListener('mouseenter', () => {
+                        this.follower.classList.remove('is-hover');
+                        this.follower.classList.add('is-viewing');
+                        this.dot.style.opacity = 0;
+                    });
+                    el.addEventListener('mouseleave', () => {
+                        this.follower.classList.remove('is-viewing');
+                        this.dot.style.opacity = 1;
+                    });
+                });
+            }
+            render() {
+                this.pos.x = MathUtils.lerp(this.pos.x, this.mouse.x, 0.15);
+                this.pos.y = MathUtils.lerp(this.pos.y, this.mouse.y, 0.15);
+                this.follower.style.transform = `translate3d(${this.pos.x}px, ${this.pos.y}px, 0)`;
+                requestAnimationFrame(() => this.render());
+            }
+        }
+
+        // 3. 磁吸按钮
+        class Magnetic {
+            constructor() {
+                this.elements = document.querySelectorAll('[data-magnetic]');
+                this.cursorFollower = document.getElementById('cursor-follower');
+                this.init();
+            }
+            init() {
+                if(isTouchDevice()) return;
+                this.elements.forEach(el => {
+                    el.addEventListener('mousemove', (e) => this.move(e, el));
+                    el.addEventListener('mouseleave', (e) => this.reset(e, el));
+                });
+            }
+            move(e, el) {
+                const rect = el.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                el.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+                el.style.transition = 'transform 0.1s linear';
+                this.cursorFollower.classList.add('is-magnetic');
+            }
+            reset(e, el) {
+                el.style.transform = `translate(0px, 0px)`;
+                el.style.transition = 'transform 0.5s cubic-bezier(0.19, 1, 0.22, 1)';
+                this.cursorFollower.classList.remove('is-magnetic');
+            }
+        }
+
+        // 4. JS 跑马灯动画 (Marquee Engine)
+        class Marquee {
+            constructor() {
+                this.track = document.getElementById('marquee-track');
+                this.position = 0;
+                this.speed = 1.5; // 滚动速度
+                // 计算一半宽度用于无缝重置
+                this.contentWidth = this.track.getBoundingClientRect().width / 2; 
+                this.animate();
+            }
+            animate() {
+                this.position -= this.speed;
+                // 无缝循环逻辑
+                if (Math.abs(this.position) >= this.contentWidth) {
+                    this.position = 0;
+                }
+                this.track.style.transform = `translate3d(${this.position}px, 0, 0)`;
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // 5. 平滑惯性滚动
+        class SmoothScroll {
+            constructor() {
+                this.container = document.getElementById('scroll-container');
+                this.current = 0;
+                this.target = 0;
+                this.ease = 0.08;
+                this.containerHeight = this.container.getBoundingClientRect().height;
+                
+                if(!isTouchDevice()) {
+                    this.init();
+                } else {
+                    this.container.style.position = 'relative';
+                }
+            }
+            init() {
+                document.body.style.height = `${this.containerHeight}px`;
+                window.addEventListener('resize', () => {
+                    this.containerHeight = this.container.getBoundingClientRect().height;
+                    document.body.style.height = `${this.containerHeight}px`;
+                });
+                requestAnimationFrame(() => this.render());
+            }
+            render() {
+                this.target = window.scrollY;
+                this.current = MathUtils.lerp(this.current, this.target, this.ease);
+                if (Math.abs(this.target - this.current) < 0.1) this.current = this.target;
+                
+                this.container.style.transform = `translate3d(0, ${-this.current}px, 0)`;
+                requestAnimationFrame(() => this.render());
+            }
+        }
+
+        // 6. 文本进场切割引擎 (修复版：严格作用于内部文本节点，不破环 flex 结构)
+        class RevealEngine {
+            constructor() {
+                this.elements = document.querySelectorAll('.text-reveal');
+                this.observer = null;
+                this.setup();
+            }
+            setup() {
+                this.elements.forEach(el => {
+                    // 防止二次渲染破坏DOM
+                    if(el.querySelector('.text-reveal-mask')) return;
+                    const text = el.innerHTML;
+                    el.innerHTML = `<span class="text-reveal-mask"><span class="text-reveal-inner">${text}</span></span>`;
+                });
+
+                this.observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const inner = entry.target.querySelector('.text-reveal-inner');
+                            if(inner) {
+                                inner.style.transition = 'transform 1s cubic-bezier(0.19, 1, 0.22, 1)';
+                                inner.style.transform = 'translateY(0)';
+                            }
+                            this.observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+            }
+            start() {
+                this.elements.forEach(el => this.observer.observe(el));
+            }
+        }
+
+        // --- 系统启动 ---
+        window.onload = () => {
+            const cursorEngine = isTouchDevice() ? null : new Cursor();
+            const magneticEngine = new Magnetic();
+            const marqueeEngine = new Marquee(); // 跑马灯启动
+            const scrollEngine = new SmoothScroll();
+            const revealEngine = new RevealEngine();
+            const preloader = new Preloader();
+
+            document.addEventListener('preloaderDone', () => {
+                revealEngine.start();
+                
+                // 等待DOM完全渲染刷新滚动高度
+                setTimeout(() => {
+                    if(scrollEngine && !isTouchDevice()){
+                        scrollEngine.containerHeight = scrollEngine.container.getBoundingClientRect().height;
+                        document.body.style.height = `${scrollEngine.containerHeight}px`;
+                    }
+                }, 500);
+            });
+        };
+    </script>
+</body>
+</html>
